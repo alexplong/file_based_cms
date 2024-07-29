@@ -31,6 +31,17 @@ class AppTest < Minitest::Test
   assert_equal 200, last_response.status
   assert_equal "text/plain", last_response["Content-Type"]
   assert_includes last_response.body, "1993 - Yukihiro Matsumoto dreams up Ruby."
+  end
 
+  def test_document_not_found
+    get "/nonexistant.txt"
+    assert_equal 302, last_response.status # assert redirection
+
+    get last_response["Location"] # request the page user was redirected to
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "nonexistant.txt does not exist"
+
+    get "/" # reload the page
+    refute_includes last_response.body, "nonexistant.txt does not exist"
   end
 end

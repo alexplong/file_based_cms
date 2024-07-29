@@ -3,13 +3,12 @@
   <head>
     <title>File-Based Content Management System</title>
     <meta charset="UTF-8">
-  </head>
-  <% if @messages[:error] %>
-    <div>
-      <p><%= @messages.delete(:error) %></p>
-    </div>
-  <% end %>
+  </head>  
   <body>
+    <% if session[:message] %>
+        <p><%= session.delete(:message) %></p>
+    <% end %>
+
     <ul>
       <% @files.each do |file| %>
         <li><a href="/<%= file %>"><%= file %></a></li>
