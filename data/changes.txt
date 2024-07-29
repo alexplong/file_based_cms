@@ -1,0 +1,6 @@
+Ruby 3.2.5 Released
+Posted by nagachika on 26 Jul 2024
+
+Ruby 3.2.5 has been released.
+
+This release include many bug-fixes. And we updated the version of bundled gem rexml to include the following security fix. CVE-2024-39908 : DoS in REXML.

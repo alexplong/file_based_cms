@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <title>File-Based Content Management System</title>
+    <meta charset="UTF-8">
+  </head>
+  <% if @messages[:error] %>
+    <div>
+      <p><%= @messages.delete(:error) %></p>
+    </div>
+  <% end %>
+  <body>
+    <ul>
+      <% @files.each do |file| %>
+        <li><a href="/<%= file %>"><%= file %></a></li>
+      <% end %>
+    </ul>
+  </body>
+</html>
