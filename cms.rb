@@ -10,10 +10,16 @@ configure do
   set :session_secret, SecureRandom.hex(32)
 end
 
-root_path = File.expand_path("..", __FILE__)
+def data_path
+  if ENV["RACK_ENV"] == "test"
+    File.expand_path("../test/data", __FILE__)
+  else
+    File.expand_path("../data", __FILE__)
+  end
+end
 
 before do
-  @files = Dir.glob(root_path + "/data/*").map do |file_path|
+  @files = Dir.glob(File.join(data_path, "*")).map do |file_path|
     File.basename(file_path)
   end
 end
@@ -28,7 +34,7 @@ def render_markdown(file_content)
 end
 
 get "/:file_name" do
-  file_path = root_path + "/data/#{params[:file_name]}"
+  file_path = File.join(data_path, "/#{params[:file_name]}")
   file_ext = File.extname(params[:file_name])
 
   if File.file?(file_path)
@@ -46,7 +52,7 @@ get "/:file_name" do
 end
 
 get "/:file_name/edit" do
-  file_path = root_path + "/data/#{params[:file_name]}"
+  file_path = File.join(data_path, "/#{params[:file_name]}")
 
   @filename = params[:file_name]
   @content = File.read(file_path)
@@ -55,7 +61,7 @@ get "/:file_name/edit" do
 end
 
 post "/:file_name" do
-  file_path = root_path + "/data/#{params[:file_name]}"
+  file_path = File.join(data_path, "/#{params[:file_name]}")
   file_content = params[:content]
 
   File.write(file_path, file_content)
