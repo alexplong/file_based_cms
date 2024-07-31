@@ -22,12 +22,6 @@ class AppTest < Minitest::Test
     FileUtils.rm_rf(data_path)
   end
 
-  def create_document(name, content = "")
-    File.open(File.join(data_path, name), "w") do |file|
-      file.write(content)
-    end
-  end
-
   def test_index
     create_document "about.md"
     create_document "changes.txt"
@@ -93,5 +87,34 @@ class AppTest < Minitest::Test
     get "/changes.txt"
     assert_equal 200, last_response.status
     assert_includes last_response.body, "I'm being tested"
+  end
+
+  def test_new_document
+    get "/new"
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "<input "
+    assert_includes last_response.body, ">Create</button>"
+  end
+
+  def test_document_name_required
+    post "/create", filename: ""
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "A valid name and extension is required."
+    post "/create", filename: "word"
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "A valid name and extension is required."
+  end
+
+  def test_creating_new_document
+    post "/create", filename: "test_doc.txt"
+    assert_equal 302, last_response.status
+
+    get last_response["Location"]
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "test_doc.txt was created."
+
+    get "/"
+    assert_equal 200, last_response.status
+    refute_includes last_response.body, "test_doc.txt was created."
   end
 end

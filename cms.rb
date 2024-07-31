@@ -33,6 +33,45 @@ def render_markdown(file_content)
   markdown.render(file_content)
 end
 
+def create_document(name, content = "")
+  File.open(File.join(data_path, name), "w") do |file|
+    file.write(content)
+  end
+end
+
+def invalid_filename?(name)
+  name.empty? || File.extname(name).empty?
+end
+
+get "/new" do
+  erb :new, layout: :layout
+end
+
+post "/create" do
+  file_name = params[:filename].strip
+  error = invalid_filename?(file_name)
+  
+  if error
+    session[:message] = "A valid name and extension is required."
+    status 422
+    erb :new
+  else
+    session[:message] = "#{file_name} was created."
+    create_document(file_name)
+    redirect "/"
+  end
+end
+
+post "/:file_name" do
+  file_path = File.join(data_path, "/#{params[:file_name]}")
+  file_content = params[:content]
+
+  File.write(file_path, file_content)
+
+  session[:message] = "#{params[:file_name]} has been updated."
+  redirect "/"
+end
+
 get "/:file_name" do
   file_path = File.join(data_path, "/#{params[:file_name]}")
   file_ext = File.extname(params[:file_name])
@@ -60,12 +99,5 @@ get "/:file_name/edit" do
   erb :edit
 end
 
-post "/:file_name" do
-  file_path = File.join(data_path, "/#{params[:file_name]}")
-  file_content = params[:content]
 
-  File.write(file_path, file_content)
 
-  session[:message] = "#{params[:file_name]} has been updated."
-  redirect "/"
-end
