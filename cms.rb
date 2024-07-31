@@ -2,7 +2,7 @@
 
 require 'sinatra'
 require 'sinatra/reloader'
-require 'erubis'
+require 'tilt/erubis'
 require 'redcarpet'
 
 configure do
@@ -25,7 +25,7 @@ before do
 end
   
 get "/" do
-  erb :index 
+  erb :index, layout: :layout
 end
 
 def render_markdown(file_content)
@@ -40,7 +40,7 @@ get "/:file_name" do
   if File.file?(file_path)
     case file_ext
     when ".md" 
-      render_markdown(File.read(file_path))
+      erb render_markdown(File.read(file_path))
     when ".txt"
       headers["Content-Type"] = "text/plain"
       File.read(file_path)
