@@ -72,6 +72,13 @@ post "/:file_name" do
   redirect "/"
 end
 
+post "/:file_name/destroy" do
+  file_path = File.join(data_path, "/#{params[:file_name]}")
+  File.delete(file_path)
+  session[:message] = "#{params[:file_name]} has been deleted."
+  redirect "/"
+end
+
 get "/:file_name" do
   file_path = File.join(data_path, "/#{params[:file_name]}")
   file_ext = File.extname(params[:file_name])
