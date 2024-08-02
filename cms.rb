@@ -23,10 +23,6 @@ before do
     File.basename(file_path)
   end
 end
-  
-get "/" do
-  erb :index, layout: :layout
-end
 
 def render_markdown(file_content)
   markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML)
@@ -41,6 +37,34 @@ end
 
 def invalid_filename?(name)
   name.empty? || File.extname(name).empty?
+end
+  
+get "/" do
+  erb :index, layout: :layout
+end
+
+get "/users/login" do
+  erb :login
+end
+
+post "/users/login" do
+  username = params[:username]
+  session[:username] = username
+
+  if username == "admin" && params[:password] == "secret"
+    session[:message] = "Welcome!" 
+    redirect "/"
+  else
+    session[:message] = "Invalid Credentials"
+    status 422
+    erb :login
+  end
+end
+
+post "/users/logout" do
+  session.delete(:username)
+  session[:message] = "You have been signed out."
+  redirect "/"
 end
 
 get "/new" do

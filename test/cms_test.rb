@@ -131,7 +131,39 @@ class AppTest < Minitest::Test
     get "/"
     assert_equal 200, last_response.status
     refute_includes last_response.body, "delete_me.txt has been deleted"
-    
+  end
 
+  def test_login_page
+    get "/users/login"
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, ">Sign In</button>"
+    assert_includes last_response.body, "<input"
+  end
+
+  def test_user_login
+    post "/users/login", username: "admin", password: "secret"
+    assert_equal 302, last_response.status
+
+    get last_response["Location"]
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "Welcome!"
+    assert_includes last_response.body, "Signed in as admin"
+  end
+
+  def test_user_login_bad_credentials
+    post "/users/login", username: "admin", password: "shhh"
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Invalid Credentials"
+  end
+
+  def test_logout
+    post "/users/login", username: "admin", password: "secret"
+    get last_response["Location"]
+    assert_includes last_response.body, "Welcome"
+
+    post "/users/logout"
+    get last_response["Location"]
+    assert_includes last_response.body, "You have been signed out"
+    assert_includes last_response.body, "Sign In"
   end
 end
