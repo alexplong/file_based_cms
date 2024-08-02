@@ -1,4 +1,4 @@
 ---
-admin: secret
-alex: super
-umi: supersuper
+admin: $2a$12$j0fiZ3IQ3O89PqXLAAFng.SRVvbcASI.gIrIpEAkE3keHT8TUH98W
+alex: $2a$12$1Wdh1s5vEh9gb2DMRZr3dO2ldnDzUfdfqMiP2CBoX6vs/0GXeX1Lu
+umi: $2a$12$VtKQ99QB8FgVAexkPOfj9esgWhZyE0X52US1gYhhmfrnR3g0VQpi6
