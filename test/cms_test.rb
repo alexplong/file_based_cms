@@ -166,12 +166,12 @@ class CMSTest < Minitest::Test
   end
 
   def test_user_login
-    post "/users/login", {username: "admin", password: "secret"}
+    post "/users/login", {username: "developer", password: "letmein"}
     assert_equal 302, last_response.status
     assert_equal session[:message], "Welcome!"
-    assert_equal session[:username], "admin"
+    assert_equal session[:username], "developer"
     get last_response["Location"]
-    assert_includes last_response.body, "Signed in as admin"
+    assert_includes last_response.body, "Signed in as developer"
   end
 
   def test_user_login_bad_credentials

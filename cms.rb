@@ -4,6 +4,7 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'tilt/erubis'
 require 'redcarpet'
+require 'yaml'
 
 configure do
   enable :sessions
@@ -49,7 +50,17 @@ def require_signed_in_user
     redirect "/"
   end
 end
-  
+
+def load_user_credentials
+  credentials_path = if ENV["RACK_ENV"] == "test"
+    File.expand_path("../test/users.yml", __FILE__)
+  else
+    File.expand_path("../users.yml", __FILE__)
+  end
+
+  YAML.load_file(credentials_path)
+end
+
 get "/" do
   erb :index, layout: :layout
 end
@@ -59,10 +70,11 @@ get "/users/login" do
 end
 
 post "/users/login" do
+  credentials = load_user_credentials
   username = params[:username]
-  session[:username] = username if username == "admin"
 
-  if username == "admin" && params[:password] == "secret"
+  if credentials.key?(username) && credentials[username] == params[:password]
+    session[:username] = username
     session[:message] = "Welcome!" 
     redirect "/"
   else
