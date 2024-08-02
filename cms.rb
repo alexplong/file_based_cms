@@ -38,6 +38,17 @@ end
 def invalid_filename?(name)
   name.empty? || File.extname(name).empty?
 end
+
+def user_signed_in?
+  session.key?(:username)
+end
+
+def require_signed_in_user
+  unless user_signed_in?
+    session[:message] = "You must be signed in to do that."
+    redirect "/"
+  end
+end
   
 get "/" do
   erb :index, layout: :layout
@@ -68,10 +79,14 @@ post "/users/logout" do
 end
 
 get "/new" do
+  require_signed_in_user
+
   erb :new, layout: :layout
 end
 
 post "/create" do
+  require_signed_in_user
+
   file_name = params[:filename].strip
   error = invalid_filename?(file_name)
   
@@ -87,6 +102,8 @@ post "/create" do
 end
 
 post "/:file_name" do
+  require_signed_in_user
+
   file_path = File.join(data_path, "/#{params[:file_name]}")
   file_content = params[:content]
 
@@ -97,6 +114,8 @@ post "/:file_name" do
 end
 
 post "/:file_name/destroy" do
+  require_signed_in_user
+
   file_path = File.join(data_path, "/#{params[:file_name]}")
   File.delete(file_path)
   session[:message] = "#{params[:file_name]} has been deleted."
@@ -122,6 +141,8 @@ get "/:file_name" do
 end
 
 get "/:file_name/edit" do
+  require_signed_in_user
+
   file_path = File.join(data_path, "/#{params[:file_name]}")
 
   @filename = params[:file_name]

@@ -26,6 +26,10 @@ class CMSTest < Minitest::Test
     last_request.env["rack.session"]
   end
 
+  def admin_session
+    {"rack.session" => { username: "admin" } }
+  end
+
   def test_index
     create_document "about.md"
     create_document "changes.txt"
@@ -66,16 +70,25 @@ class CMSTest < Minitest::Test
   def test_editing_document
     create_document "changes.txt"
 
-    get "/changes.txt/edit"
+    get "/changes.txt/edit", {}, admin_session
     assert_equal 200, last_response.status
     assert_includes last_response.body, "<textarea "
     assert_includes last_response.body, ">Save Changes</button>"
   end
 
+  def test_editing_document_logged_out
+    create_document "changes.txt"
+
+    get "/changes.txt/edit"
+    
+    assert_equal 302, last_response.status
+    assert_equal "You must be signed in to do that.", session[:message]
+  end
+
   def test_updating_document
     create_document "changes.txt"
 
-    post "/changes.txt", content: "I'm being tested"
+    post "/changes.txt", {content: "I'm being tested"}, admin_session
     assert_equal 302, last_response.status
     assert_equal session[:message], "changes.txt has been updated."
 
@@ -84,34 +97,65 @@ class CMSTest < Minitest::Test
     assert_includes last_response.body, "I'm being tested"
   end
 
-  def test_new_document
-    get "/new"
+  def test_updating_document_signed_out
+    post "/changes.txt"
+
+    assert_equal 302, last_response.status
+    assert_equal "You must be signed in to do that.", session[:message]
+  end
+
+  def test_new_document_form
+    get "/new", {}, admin_session
     assert_equal 200, last_response.status
     assert_includes last_response.body, "<input "
     assert_includes last_response.body, ">Create</button>"
   end
 
+  def test_new_document_form_signed_out
+    get "/new"
+
+    assert_equal 302, last_response.status
+    assert_equal "You must be signed in to do that.", session[:message]
+  end
+
   def test_document_name_required
-    post "/create", filename: ""
+    post "/create", {filename: ""}, admin_session
     assert_equal 422, last_response.status
     assert_includes last_response.body, "A valid name and extension is required."
-    post "/create", filename: "word"
+  end
+
+  def test_document_name_extension_required
+    post "/create", {filename: "word"}, admin_session
     assert_equal 422, last_response.status
     assert_includes last_response.body, "A valid name and extension is required."
   end
 
   def test_creating_new_document
-    post "/create", filename: "test_doc.txt"
+    post "/create", {filename: "test_doc.txt"}, admin_session
     assert_equal 302, last_response.status
     assert_equal session[:message], "test_doc.txt was created."
+  end
+
+  def test_creating_new_document_signed_out
+    post "/create", {filename: "test_doc.txt"}
+    assert_equal 302, last_response.status
+    assert_equal "You must be signed in to do that.", session[:message]
   end
 
   def test_delete_document
     create_document "delete_me.txt"
 
-    post "/delete_me.txt/destroy"
+    post "/delete_me.txt/destroy", {}, admin_session
     assert_equal 302, last_response.status
     assert_equal session[:message], "delete_me.txt has been deleted."
+  end
+
+  def test_delete_document_signed_out
+    create_document "delete_me.txt"
+
+    post "/delete_me.txt/destroy"
+    assert_equal 302, last_response.status
+    assert_equal "You must be signed in to do that.", session[:message]
   end
 
   def test_login_page
@@ -122,7 +166,7 @@ class CMSTest < Minitest::Test
   end
 
   def test_user_login
-    post "/users/login", username: "admin", password: "secret"
+    post "/users/login", {username: "admin", password: "secret"}
     assert_equal 302, last_response.status
     assert_equal session[:message], "Welcome!"
     assert_equal session[:username], "admin"
@@ -138,7 +182,7 @@ class CMSTest < Minitest::Test
   end
 
   def test_logout
-    get "/", {}, {"rack.session" => { username: "admin" } }
+    get "/", {}, admin_session
     assert_includes last_response.body, "Signed in as admin"
 
     post "/users/logout"
