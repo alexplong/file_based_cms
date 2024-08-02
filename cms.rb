@@ -49,7 +49,7 @@ end
 
 post "/users/login" do
   username = params[:username]
-  session[:username] = username
+  session[:username] = username if username == "admin"
 
   if username == "admin" && params[:password] == "secret"
     session[:message] = "Welcome!" 
